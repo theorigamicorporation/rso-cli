@@ -1,0 +1,6 @@
+Name:     orders
+Status:   healthy
+Members:  2/2
+Storage:  20Gi
+Created:  2026-01-02 03:04
+URL:      postgresql://orders-rw:5432

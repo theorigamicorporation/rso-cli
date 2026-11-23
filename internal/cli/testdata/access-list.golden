@@ -1,0 +1,2 @@
+USERNAME     TYPE             ROLES  PERMISSIONS  SCOPED
+ci-deployer  SERVICE_ACCOUNT  -      apps.read    1

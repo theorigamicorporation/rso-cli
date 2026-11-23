@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# While the repository is private, jobs run on the organisation's self-hosted
+# runners, named by the repository variable PRIVATE_RUNNER; once public they
+# use GitHub-hosted runners. Self-hosted runners are never used for a public
+# repository.
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+        with:
+          golangci-lint: "true"
+      - run: just lint
+      - name: go mod tidy is clean
+        run: just tidy-check
+
+  test:
+    name: Tests
+    runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - run: just build
+      - run: just test-ci
+      - name: The binary runs
+        run: ./bin/rso version

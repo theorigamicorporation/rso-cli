@@ -1,0 +1,14 @@
+Name:            nightly
+Image:           registry.example.com/acme/report:1.4
+Command:         -
+Args:            --full
+Environment:     MODE, DB_URL (secret db/url)
+CPU:             0.5
+Memory:          512 MB
+Schedule (UTC):  30 3 * * *
+Concurrency:     FORBID
+Timeout:         3600 s
+Retries:         2
+Suspended:       no
+Next run:        2026-01-02 04:00
+Last run:        -

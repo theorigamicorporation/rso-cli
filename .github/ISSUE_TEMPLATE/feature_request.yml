@@ -1,0 +1,22 @@
+name: Feature request
+description: A command, flag or behaviour you would like to see
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: The task you are trying to get done from the command line.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How would you like it to look?
+      description: A sketch of the command line and what it prints.
+      render: shell
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: For example the console, the API or the Terraform provider.

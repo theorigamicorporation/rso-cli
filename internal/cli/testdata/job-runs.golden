@@ -1,0 +1,2 @@
+RUN                    STATUS     STARTED           DURATION  MANUAL  MESSAGE
+nightly-manual-abc123  SUCCEEDED  2026-01-02 03:04  5s        yes     -

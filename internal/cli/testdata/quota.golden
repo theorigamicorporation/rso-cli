@@ -1,0 +1,5 @@
+RESOURCE              USED     LIMIT    USE
+vCPU                  4        16       25%
+Apps                  1        20       5%
+Queues                2        20       10%
+AI tokens this month  1250000  5000000  25%

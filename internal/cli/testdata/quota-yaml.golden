@@ -1,0 +1,12 @@
+- limit: 16
+  name: vcpu
+  used: 4
+- limit: 20
+  name: apps
+  used: 1
+- limit: 20
+  name: queues
+  used: 2
+- limit: 5000000
+  name: aiTokens
+  used: 1250000

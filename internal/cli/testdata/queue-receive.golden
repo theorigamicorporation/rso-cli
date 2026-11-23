@@ -1,0 +1,4 @@
+PUBLISHED         TOPIC   ROUTING KEY    BODY
+2026-01-02 03:04  events  order.created  {"id":7}
+2026-01-02 03:04  events  user.created   hello
+2026-01-02 03:04  -       audit          from stdin

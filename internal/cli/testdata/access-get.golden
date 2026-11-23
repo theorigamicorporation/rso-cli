@@ -1,0 +1,7 @@
+Username:         ci-deployer
+Name:             CI deployer
+Type:             SERVICE_ACCOUNT
+Restricted:       yes
+Roles:            -
+Permissions:      apps.read
+Scoped (bucket):  storage.objects.read on names media

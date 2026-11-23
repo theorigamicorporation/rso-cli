@@ -1,0 +1,3 @@
+NAME    STATUS  WAITING  UNACKED  CONSUMERS  CREATED
+audit   READY   3        0        0          2026-01-02 03:04
+orders  READY   2        0        0          2026-01-02 03:04

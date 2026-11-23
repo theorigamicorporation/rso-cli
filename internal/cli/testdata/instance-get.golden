@@ -1,0 +1,7 @@
+ID:              4101
+Name:            build-1
+Status:          running
+CPUs:            2
+Memory:          4.0 GiB
+Disk:            30.0 GiB
+Address (eth0):  203.0.113.20

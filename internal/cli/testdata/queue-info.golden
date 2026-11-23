@@ -1,0 +1,8 @@
+Available:            yes
+HTTP endpoint:        https://api.example.com/queues/v1
+AMQP (in-cluster):    queues.internal.example:5672
+Virtual host:         tenant-acme
+Largest message:      256.0 KiB
+Queue holds at most:  100000 messages or 64.0 MiB
+Messages kept for:    168 h
+Receive at most:      32

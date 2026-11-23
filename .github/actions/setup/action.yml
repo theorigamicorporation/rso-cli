@@ -1,0 +1,41 @@
+name: Set up toolchain
+description: >
+  Installs Go (from go.mod) and just, golangci-lint and goreleaser at the
+  versions pinned in .tool-versions, so CI and local runs use the same tools.
+inputs:
+  golangci-lint:
+    description: Install golangci-lint ("true"/"false")
+    default: "false"
+  goreleaser:
+    description: Install goreleaser ("true"/"false")
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Read .tool-versions
+      id: versions
+      shell: bash
+      run: |
+        pinned() { awk -v t="$1" '$1 == t { print $2 }' .tool-versions; }
+        {
+          echo "just=$(pinned just)"
+          echo "golangci-lint=v$(pinned golangci-lint)"
+          echo "goreleaser=v$(pinned goreleaser)"
+        } >> "$GITHUB_OUTPUT"
+    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        go-version-file: go.mod
+        cache: true
+    - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+      with:
+        just-version: ${{ steps.versions.outputs.just }}
+    - if: inputs.golangci-lint == 'true'
+      uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+      with:
+        version: ${{ steps.versions.outputs.golangci-lint }}
+        install-only: true
+    - if: inputs.goreleaser == 'true'
+      uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+      with:
+        version: ${{ steps.versions.outputs.goreleaser }}
+        install-only: true

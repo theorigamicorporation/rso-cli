@@ -1,0 +1,2 @@
+NAME  TARGET                  PORTS
+shop  shop.hosts.example.com  80>8080

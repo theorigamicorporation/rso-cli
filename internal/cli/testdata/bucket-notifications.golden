@@ -1,0 +1,2 @@
+ID   BUCKET   EVENTS   KEYS            TARGET         DELIVERED  DROPPED
+n-1  uploads  created  incoming/*.csv  queue imports  3          0

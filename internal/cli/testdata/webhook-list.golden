@@ -1,0 +1,2 @@
+NAME         SOURCE                  URL                               STATE   DELIVERED  DEAD  LAST
+orders-hook  topic events (order.*)  https://hooks.example.com/orders  ACTIVE  12         0     200

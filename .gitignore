@@ -1,0 +1,18 @@
+# Binaries
+/rso
+/bin/
+/dist/
+
+# Test and coverage output
+coverage.out
+coverage.html
+*.test
+
+# Local overrides and secrets
+.env
+*.env
+
+# Editors
+.idea/
+.vscode/
+*.swp

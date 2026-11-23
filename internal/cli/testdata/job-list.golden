@@ -1,0 +1,2 @@
+NAME     SCHEDULE    IMAGE                                 SUSPENDED  NEXT RUN          LAST RUN
+nightly  30 3 * * *  registry.example.com/acme/report:1.4  no         2026-01-02 04:00  -

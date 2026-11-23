@@ -1,0 +1,8 @@
+Name:           production
+Status:         READY
+Reason:         -
+Version:        1.37.2
+Upgrading to:   -
+API endpoint:   https://192.0.2.10:6443
+Control plane:  3/3 ready, 2 vCPU, 4 GB RAM, 30 GB disk
+Pool workers:   1/2 ready, 4 vCPU, 8 GB RAM, 50 GB disk

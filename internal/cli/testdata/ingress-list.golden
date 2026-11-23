@@ -1,0 +1,2 @@
+NAME  RULES                     SERVICES  MIDDLEWARES  TLS
+shop  Host(`shop.example.com`)  shop:80   staff        yes

@@ -1,0 +1,14 @@
+Name:               orders-hook
+Source:             topic events (order.*)
+URL:                https://hooks.example.com/orders
+Signed:             no
+Headers:            -
+State:              ACTIVE
+Pause reason:       -
+Delivered:          12
+Dead-lettered:      0
+Dead-letter queue:  rso-wh-orders-hook-dead
+Last status:        200
+Last error:         -
+Last attempt:       2026-01-02 03:04
+Last success:       2026-01-02 03:04

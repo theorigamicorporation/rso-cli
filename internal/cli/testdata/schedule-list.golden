@@ -1,0 +1,2 @@
+NAME    SCHEDULE     TARGET         ENABLED  NEXT RUN          LAST
+digest  0 6 * * 1-5  queue reports  yes      2026-01-05 06:00  -

@@ -1,0 +1,4 @@
+TYPE                        DESCRIPTION
+apps.app.created            An app was created
+instances.instance.started  An instance was started
+queues.queue.deleted        A queue was deleted

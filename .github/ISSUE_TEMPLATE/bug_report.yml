@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran, what you expected and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Command and output
+      description: Include the error and the exit code (`echo $?`). Replace tenant ids, tokens and secrets first.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: rso version
+      description: "`rso version`"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+      placeholder: "linux/amd64"
+    validations:
+      required: true
+  - type: dropdown
+    id: auth
+    attributes:
+      label: How you signed in
+      options:
+        - rso login
+        - Service account (environment variables)
+        - Access token (environment variable)

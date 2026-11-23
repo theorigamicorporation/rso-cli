@@ -1,0 +1,3 @@
+ID            TOPIC   FILTER   TARGET        STATUS
+sub000000001  events  #        queue audit   READY
+sub000000002  events  order.*  queue orders  READY
