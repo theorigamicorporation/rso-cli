@@ -1,4 +1,4 @@
 golang 1.27.4
 golangci-lint 2.15.0
 just 1.59.0
-goreleaser 2.20.2
+goreleaser 2.20.3
