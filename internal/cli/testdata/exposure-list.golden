@@ -1,0 +1,2 @@
+HOST              STATUS  TARGET                     TLS   DNS               UPDATED
+shop.example.org  ACTIVE  http://198.51.100.10:8080  auto  edge.example.net  2026-01-02 03:04

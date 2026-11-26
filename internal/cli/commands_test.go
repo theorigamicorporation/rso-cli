@@ -3,6 +3,7 @@ package cli_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -177,7 +178,8 @@ func TestDNS(t *testing.T) {
 	if in := call.Variables["input"].(map[string]any); in["zone"] != "example.com" || in["name"] != "www.example.com" || in["type"] != "CNAME" || in["content"] != "shop.example.com" {
 		t.Errorf("createDnsRecord input: %v", in)
 	}
-	h.wantCode(h.run("dns", "record", "create", "example.com", "mail.example.com", "x", "--type", "MX"), 2)
+	h.ok("dns", "record", "create", "example.org", "example.org", "10 mail.example.org", "--type", "mx")
+	h.wantCode(h.run("dns", "record", "create", "example.com", "mail.example.com", "x", "--type", "SRV"), 2)
 
 	contains(t, h.ok("dns", "record", "update", "33333333-3333-4333-8333-333333333333", "203.0.113.11").stdout, "203.0.113.11")
 	h.wantCode(h.run("dns", "record", "delete", "33333333-3333-4333-8333-333333333333"), 2)
@@ -185,6 +187,104 @@ func TestDNS(t *testing.T) {
 
 	h.api.Fail("createDnsRecord", "CONFLICT", "The name is held by another tenant")
 	h.wantCode(h.run("dns", "record", "create", "example.com", "taken.example.com", "203.0.113.12"), 6)
+}
+
+func TestDNSZones(t *testing.T) {
+	h := signedIn(t)
+	h.golden("dns-zones", h.ok("dns", "zone", "list").stdout)
+	if h.ok("dns", "zones").stdout != h.ok("dns", "zone", "list").stdout {
+		t.Error("\"dns zones\" and \"dns zone list\" differ")
+	}
+	contains(t, h.ok("dns", "zone", "get", "example.org").stdout, "ns1.example.net")
+
+	created := h.ok("dns", "zone", "create", "Example.ORG")
+	contains(t, created.stdout, "PENDING")
+	contains(t, created.stderr, "Set these name servers for example.org")
+	if call, _ := h.api.LastCall("createDnsZone"); call.Variables["domain"] != "example.org" {
+		t.Errorf("createDnsZone: %v", call.Variables)
+	}
+
+	h.wantCode(h.run("dns", "zone", "delete", "example.org"), 2)
+	h.ok("dns", "zone", "delete", "example.org", "--yes")
+	if call, _ := h.api.LastCall("deleteDnsZone"); call.Variables["name"] != "example.org" || call.Variables["confirm"] != "example.org" {
+		t.Errorf("deleteDnsZone: %v", call.Variables)
+	}
+	h.api.Fail("deleteDnsZone", "CONFLICT", "The zone still has records")
+	h.wantCode(h.run("dns", "zone", "delete", "example.org", "--yes"), 6)
+}
+
+func TestExpose(t *testing.T) {
+	h := signedIn(t)
+	h.golden("exposure-list", h.ok("exposure", "list").stdout)
+	h.golden("exposure-get", h.ok("exposure", "get", "shop.example.org").stdout)
+
+	out := h.ok("expose", "Shop.Example.org", "--to", "198.51.100.10:8080")
+	contains(t, out.stdout, "http://198.51.100.10:8080")
+	contains(t, out.stderr, "Point shop.example.org at edge.example.net")
+	call, _ := h.api.LastCall("exposeHost")
+	in := call.Variables["input"].(map[string]any)
+	target := in["target"].(map[string]any)
+	if in["host"] != "shop.example.org" || target["address"] != "198.51.100.10" || target["port"] != float64(8080) || target["scheme"] != "HTTP" || len(in) != 2 || call.Variables["namespace"] != nil {
+		t.Errorf("exposeHost: %v", call.Variables)
+	}
+
+	h.runIn("s3cret-password\n", "expose", "shop.example.org", "--to", "https://198.51.100.10:8443", "--tls", "none", "--basic-auth-user", "ada", "--namespace", "team")
+	call, _ = h.api.LastCall("exposeHost")
+	in = call.Variables["input"].(map[string]any)
+	if in["tls"] != "NONE" || in["target"].(map[string]any)["scheme"] != "HTTPS" || in["basicAuth"].(map[string]any)["password"] != "s3cret-password" || call.Variables["namespace"] != "team" {
+		t.Errorf("exposeHost: %v", call.Variables)
+	}
+
+	h.ok("expose", "shop.example.org", "--to", "198.51.100.10:8080", "--no-basic-auth")
+	call, _ = h.api.LastCall("exposeHost")
+	if value, present := call.Variables["input"].(map[string]any)["basicAuth"]; !present || value != nil {
+		t.Errorf("--no-basic-auth must send a null: %v", call.Variables)
+	}
+
+	h.wantCode(h.run("expose", "shop.example.org"), 2)
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "198.51.100.10"), 2)
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "198.51.100.10:0"), 2)
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "https://198.51.100.10:443", "--scheme", "http"), 2)
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "198.51.100.10:80", "--tls", "maybe"), 2)
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "198.51.100.10:80", "--basic-auth-user", "ada"), 2)
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "198.51.100.10:80", "--basic-auth-user", "ada", "--no-basic-auth"), 2)
+
+	h.wantCode(h.run("exposure", "remove", "shop.example.org"), 2)
+	h.ok("exposure", "remove", "shop.example.org", "--yes", "--namespace", "team")
+	if call, _ := h.api.LastCall("unexposeHost"); call.Variables["host"] != "shop.example.org" || call.Variables["namespace"] != "team" {
+		t.Errorf("unexposeHost: %v", call.Variables)
+	}
+
+	h.api.Fail("exposeHost", "CONFLICT", "The host is held by someone else")
+	h.wantCode(h.run("expose", "taken.example.org", "--to", "198.51.100.10:80"), 6)
+	h.api.Fail("exposures", "NOT_CONFIGURED", "Publishing hostnames is not switched on")
+	if r := h.run("exposure", "list"); r.code == 0 {
+		t.Error("a feature that is off must not look like an empty list")
+	}
+}
+
+func TestDomains(t *testing.T) {
+	h := signedIn(t)
+	h.golden("domain-list", h.ok("domain", "list").stdout)
+
+	added := h.ok("domain", "add", "Example.org")
+	contains(t, added.stdout, "_platform-challenge.example.org")
+	contains(t, added.stdout, "verify-0123456789abcdef")
+	contains(t, added.stderr, "rso domain verify example.org")
+	if call, _ := h.api.LastCall("registerDomain"); call.Variables["domain"] != "example.org" {
+		t.Errorf("registerDomain: %v", call.Variables)
+	}
+
+	contains(t, h.ok("domain", "verify", "example.org").stdout, "VERIFIED")
+	h.api.Fail("verifyDomain", "VERIFICATION_FAILED", "The TXT record was not found")
+	if r := h.run("domain", "verify", "example.org"); r.code == 0 || !strings.Contains(r.stderr, "TXT record was not found") {
+		t.Errorf("a failed verification: %+v", r)
+	}
+
+	h.wantCode(h.run("domain", "remove", "example.org"), 2)
+	h.ok("domain", "remove", "example.org", "--yes")
+	h.api.Fail("removeDomain", "CONFLICT", "Hosts are published under the domain")
+	h.wantCode(h.run("domain", "remove", "example.org", "--yes"), 6)
 }
 
 func TestAccess(t *testing.T) {

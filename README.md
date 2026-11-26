@@ -84,7 +84,9 @@ export RSO_TENANT=<id>         # for a script
 | `rso service` | Name something outside the app platform, such as an instance, so ingress can reach it |
 | `rso ingress` | Publish a service under a hostname, with a certificate |
 | `rso middleware` | Basic auth, redirects and path prefix stripping for ingress routes |
-| `rso dns` | `zones` offered to the tenant and the `record`s in them |
+| `rso dns` | `zones` offered to the tenant and the `record`s in them; `zone` hosts a domain of your own (preview) |
+| `rso expose` | Publish a hostname and send its traffic to an address in the tenant's network (preview); `rso exposure` lists, shows and removes them |
+| `rso domain` | Prove a domain is yours with a TXT record, to publish hostnames under it (preview) |
 | `rso service-account` | Accounts for automation: `create`, `rotate`, `enable`, `disable`, `delete` |
 | `rso access` | Who may do what: `list`, `get`, `grant`, `revoke`, `scope` to some objects only, `roles` |
 | `rso quota` | What the tenant uses against its limits |

@@ -90,6 +90,7 @@ RSO_ACCESS_TOKEN) and RSO_TENANT instead.`,
 		a.jobCommand(), a.bucketCommand(), a.kubernetesCommand(), a.appCommand(),
 		a.instanceCommand(), a.postgresCommand(), a.registryCommand(), a.volumeCommand(), a.sshKeyCommand(),
 		a.serviceCommand(), a.ingressCommand(), a.middlewareCommand(), a.dnsCommand(),
+		a.exposeCommand(), a.exposureCommand(), a.domainCommand(),
 		a.serviceAccountCommand(), a.accessCommand(),
 		a.quotaCommand(), a.aiCommand(), a.versionCommand(),
 	)

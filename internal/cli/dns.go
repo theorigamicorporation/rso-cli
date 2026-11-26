@@ -9,6 +9,79 @@ import (
 	"github.com/theorigamicorporation/rsodev-go/platform"
 )
 
+var dnsZoneColumns = []string{"ZONE", "KIND", "STATUS", "NAME SERVERS"}
+
+func dnsZoneKind(z platform.DNSZone) string {
+	if z.Delegated {
+		return "own"
+	}
+	return "platform"
+}
+
+func dnsZoneRow(z platform.DNSZone) []string {
+	return []string{z.Name, dnsZoneKind(z), z.Status, strings.Join(z.Nameservers, ", ")}
+}
+
+func (a *app) printDNSZone(cmd *cobra.Command, z *platform.DNSZone) error {
+	return a.print(cmd, output.View{Data: z, Fields: [][2]string{
+		{"Zone", z.Name}, {"Kind", dnsZoneKind(*z)}, {"Status", z.Status}, {"Name servers", strings.Join(z.Nameservers, ", ")}, {"Created", when(deref(z.CreatedAt))},
+	}})
+}
+
+// dnsZoneCommand manages zones of the tenant's own. list is shared with
+// "rso dns zones".
+func (a *app) dnsZoneCommand(list func(*cobra.Command, []string) error) *cobra.Command {
+	zone := &cobra.Command{Use: "zone", Short: "Bring domains of your own to the platform's DNS (preview)",
+		Long: `Host the DNS of a domain of your own on the platform:
+
+  rso dns zone create example.com   names the name servers to set
+  rso dns zone get example.com      PENDING until the delegation is seen
+
+Set the name servers for the domain at its registrar. Once the zone is
+ACTIVE, manage its records with "rso dns record".` + previewNote}
+
+	zone.AddCommand(&cobra.Command{Use: "list", Short: "List the zones the tenant can put records in", Args: cobra.NoArgs, RunE: list})
+
+	zone.AddCommand(&cobra.Command{
+		Use:   "get <domain>",
+		Short: "Show a zone and its name servers",
+		Args:  cobra.ExactArgs(1),
+		RunE: a.sdk(func(cmd *cobra.Command, client *platform.Client, args []string) error {
+			z, err := client.GetDNSZone(cmd.Context(), strings.ToLower(args[0]))
+			if err != nil {
+				return err
+			}
+			return a.printDNSZone(cmd, z)
+		}),
+	})
+
+	zone.AddCommand(&cobra.Command{
+		Use:   "create <domain>",
+		Short: "Host the DNS of a domain of your own",
+		Long:  "Host the DNS of a domain of your own. The answer names the name servers to\nset for the domain at its registrar; nothing in the zone answers before that.\nRunning it again for a zone you have shows the zone.",
+		Args:  cobra.ExactArgs(1),
+		RunE: a.sdk(func(cmd *cobra.Command, client *platform.Client, args []string) error {
+			z, err := client.CreateDNSZone(cmd.Context(), strings.ToLower(args[0]))
+			if err != nil {
+				return err
+			}
+			if z.Status == platform.DNSZonePending && len(z.Nameservers) > 0 {
+				a.note(cmd, "Set these name servers for %s at its registrar: %s", z.Name, strings.Join(z.Nameservers, ", "))
+			}
+			return a.printDNSZone(cmd, z)
+		}),
+	})
+
+	remove := a.deleteCommand("delete <domain>", "Stop hosting a zone of your own",
+		"Stop hosting the zone %s? The domain no longer resolves through the platform.", "Deleted the zone %s.",
+		a.sdk(func(cmd *cobra.Command, client *platform.Client, args []string) error {
+			return client.DeleteDNSZone(cmd.Context(), strings.ToLower(args[0]))
+		}))
+	remove.Long = "Stop hosting a zone of your own. Refused while the zone has records or\npublished hostnames."
+	zone.AddCommand(remove)
+	return zone
+}
+
 var dnsRecordColumns = []string{"ID", "NAME", "TYPE", "CONTENT", "UPDATED"}
 
 func dnsRecordRow(r platform.DNSRecord) []string {
@@ -18,22 +91,24 @@ func dnsRecordRow(r platform.DNSRecord) []string {
 func (a *app) dnsCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "dns", Short: "Manage DNS records in the zones of the tenant"}
 
+	listZones := a.sdk(func(cmd *cobra.Command, client *platform.Client, _ []string) error {
+		zones, err := client.ListDNSZones(cmd.Context())
+		if err != nil {
+			return err
+		}
+		rows := make([][]string, 0, len(zones))
+		for _, z := range zones {
+			rows = append(rows, dnsZoneRow(z))
+		}
+		return a.print(cmd, output.View{Data: zones, Columns: dnsZoneColumns, Rows: rows, Empty: "This tenant has no zones."})
+	})
 	cmd.AddCommand(&cobra.Command{
 		Use:   "zones",
 		Short: "List the zones the tenant can put records in",
 		Args:  cobra.NoArgs,
-		RunE: a.sdk(func(cmd *cobra.Command, client *platform.Client, _ []string) error {
-			zones, err := client.ListDNSZones(cmd.Context())
-			if err != nil {
-				return err
-			}
-			rows := make([][]string, 0, len(zones))
-			for _, z := range zones {
-				rows = append(rows, []string{z.Name})
-			}
-			return a.print(cmd, output.View{Data: zones, Columns: []string{"ZONE"}, Rows: rows, Empty: "No zones are offered to this tenant."})
-		}),
+		RunE:  listZones,
 	})
+	cmd.AddCommand(a.dnsZoneCommand(listZones))
 
 	record := &cobra.Command{Use: "record", Aliases: []string{"records"}, Short: "Manage DNS records"}
 	cmd.AddCommand(record)
@@ -89,9 +164,9 @@ record there is deleted.`,
 		RunE: a.sdk(func(cmd *cobra.Command, client *platform.Client, args []string) error {
 			kind := strings.ToUpper(recordType)
 			switch kind {
-			case platform.DNSRecordA, platform.DNSRecordAAAA, platform.DNSRecordCNAME, platform.DNSRecordTXT:
+			case platform.DNSRecordA, platform.DNSRecordAAAA, platform.DNSRecordCNAME, platform.DNSRecordTXT, platform.DNSRecordMX:
 			default:
-				return usagef("--type is A, AAAA, CNAME or TXT, got %q", recordType)
+				return usagef("--type is A, AAAA, CNAME, TXT or MX, got %q", recordType)
 			}
 			r, err := client.CreateDNSRecord(cmd.Context(), args[0], args[1], kind, args[2])
 			if err != nil {
@@ -100,7 +175,7 @@ record there is deleted.`,
 			return a.print(cmd, output.View{Data: r, Columns: dnsRecordColumns, Rows: [][]string{dnsRecordRow(*r)}})
 		}),
 	}
-	create.Flags().StringVar(&recordType, "type", "A", "record type: A, AAAA, CNAME or TXT")
+	create.Flags().StringVar(&recordType, "type", "A", "record type: A, AAAA, CNAME, TXT or, in a zone of your own, MX")
 	record.AddCommand(create)
 
 	record.AddCommand(&cobra.Command{

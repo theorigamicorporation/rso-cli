@@ -1,0 +1,3 @@
+ZONE         KIND      STATUS   NAME SERVERS
+example.com  platform  ACTIVE   -
+example.org  own       PENDING  ns1.example.net, ns2.example.net

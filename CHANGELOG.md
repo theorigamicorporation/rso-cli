@@ -6,6 +6,15 @@ All notable changes are listed here. The format follows
 
 ## Unreleased
 
+### Added
+
+- Preview: `rso expose` publishes a hostname to an address in the tenant's
+  network; `rso exposure` (list, get, remove).
+- Preview: `rso domain` (add, verify, list, remove) for domains of your own.
+- Preview: `rso dns zone` (create, list, get, delete) hosts the DNS of a
+  domain of your own. `rso dns zones` shows each zone's kind, status and
+  name servers, and `rso dns record create` takes `--type MX`.
+
 ## 0.1.0 - 2026-11-23
 
 First release.

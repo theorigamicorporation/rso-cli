@@ -156,7 +156,65 @@ func (s *Server) resources() {
 	record := map[string]any{"id": "33333333-3333-4333-8333-333333333333", "zone": "example.com", "name": "shop.example.com", "type": "A", "content": "203.0.113.10",
 		"createdAt": created, "createdBy": "ada", "updatedAt": created}
 	s.Fixed("dnsAvailable", true)
-	s.Fixed("dnsZones", []map[string]any{{"name": "example.com"}})
+	zone := map[string]any{"name": "example.com", "status": "ACTIVE", "nameservers": []string{}, "delegated": false, "createdAt": nil}
+	ownZone := map[string]any{"name": "example.org", "status": "PENDING", "nameservers": []string{"ns1.example.net", "ns2.example.net"}, "delegated": true, "createdAt": created}
+	s.Fixed("dnsZones", []map[string]any{zone, ownZone})
+	s.Fixed("dnsZone", ownZone)
+	s.Handle("createDnsZone", func(v map[string]any) (any, *Error) {
+		out := map[string]any{}
+		for k, value := range ownZone {
+			out[k] = value
+		}
+		out["name"] = v["domain"]
+		return out, nil
+	})
+	s.Fixed("deleteDnsZone", true)
+
+	exposure := map[string]any{"host": "shop.example.org", "namespace": TenantA, "status": "ACTIVE", "tls": "AUTO", "dnsManaged": false,
+		"dnsTarget": []string{"edge.example.net"}, "domain": "example.org", "domainVerified": true,
+		"target": map[string]any{"address": "198.51.100.10", "port": 8080, "scheme": "HTTP"}, "targetOutOfRange": false, "managedByPlatform": false,
+		"basicAuthUser": nil, "createdAt": created, "createdBy": "ada", "updatedAt": created}
+	s.Fixed("exposuresAvailable", true)
+	s.Fixed("exposures", page(exposure))
+	s.Fixed("exposure", exposure)
+	s.Handle("exposeHost", func(v map[string]any) (any, *Error) {
+		in := input(v)
+		out := map[string]any{}
+		for k, value := range exposure {
+			out[k] = value
+		}
+		out["host"], out["target"], out["status"] = in["host"], in["target"], "PENDING"
+		if tls, ok := in["tls"].(string); ok {
+			out["tls"] = tls
+		}
+		if auth, ok := in["basicAuth"].(map[string]any); ok {
+			out["basicAuthUser"] = auth["username"]
+		}
+		return out, nil
+	})
+	s.Fixed("unexposeHost", true)
+
+	domain := map[string]any{"domain": "example.org", "status": "PENDING", "challengeName": "_platform-challenge.example.org", "challengeValue": "verify-0123456789abcdef",
+		"verifiedAt": nil, "lastCheckedAt": nil, "createdAt": created}
+	s.Fixed("domainsAvailable", true)
+	s.Fixed("domains", []map[string]any{domain})
+	s.Handle("registerDomain", func(v map[string]any) (any, *Error) {
+		out := map[string]any{}
+		for k, value := range domain {
+			out[k] = value
+		}
+		out["domain"] = v["domain"]
+		return out, nil
+	})
+	s.Handle("verifyDomain", func(v map[string]any) (any, *Error) {
+		out := map[string]any{}
+		for k, value := range domain {
+			out[k] = value
+		}
+		out["domain"], out["status"], out["verifiedAt"], out["lastCheckedAt"] = v["domain"], "VERIFIED", created, created
+		return out, nil
+	})
+	s.Fixed("removeDomain", true)
 	s.Fixed("dnsRecords", []map[string]any{record})
 	s.Fixed("dnsRecord", record)
 	s.Handle("createDnsRecord", echo(map[string]any{"id": "44444444-4444-4444-8444-444444444444", "createdAt": created, "createdBy": "ada", "updatedAt": created}))
