@@ -10,6 +10,9 @@ All notable changes are listed here. The format follows
 
 - Preview: `rso expose` publishes a hostname to an address in the tenant's
   network; `rso exposure` (list, get, remove).
+- `rso expose --insecure-skip-verify` for https targets; `rso exposure get`
+  shows whether the target's certificate is checked and whether the DNS
+  record is proxied.
 - Preview: `rso domain` (add, verify, list, remove) for domains of your own.
 - Preview: `rso dns zone` (create, list, get, delete) hosts the DNS of a
   domain of your own. `rso dns zones` shows each zone's kind, status and

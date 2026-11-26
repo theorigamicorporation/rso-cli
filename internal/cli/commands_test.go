@@ -235,6 +235,18 @@ func TestExpose(t *testing.T) {
 		t.Errorf("exposeHost: %v", call.Variables)
 	}
 
+	if _, present := in["target"].(map[string]any)["insecureSkipVerify"]; present {
+		t.Errorf("the certificate setting must be left out unless the flag is given: %v", in)
+	}
+	for flag, want := range map[string]bool{"--insecure-skip-verify": true, "--insecure-skip-verify=false": false} {
+		h.ok("expose", "shop.example.org", "--to", "https://198.51.100.10:8443", flag)
+		call, _ = h.api.LastCall("exposeHost")
+		if got := call.Variables["input"].(map[string]any)["target"].(map[string]any)["insecureSkipVerify"]; got != want {
+			t.Errorf("%s: sent %v", flag, got)
+		}
+	}
+	h.wantCode(h.run("expose", "shop.example.org", "--to", "198.51.100.10:8080", "--insecure-skip-verify"), 2)
+
 	h.ok("expose", "shop.example.org", "--to", "198.51.100.10:8080", "--no-basic-auth")
 	call, _ = h.api.LastCall("exposeHost")
 	if value, present := call.Variables["input"].(map[string]any)["basicAuth"]; !present || value != nil {

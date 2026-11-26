@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/spf13/cobra v1.10.2
-	github.com/theorigamicorporation/rsodev-go v0.3.0
+	github.com/theorigamicorporation/rsodev-go v0.3.1-0.20261126091141-bf3959fe17ff
 	gopkg.in/yaml.v3 v3.0.1
 )
 

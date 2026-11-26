@@ -172,7 +172,8 @@ func (s *Server) resources() {
 
 	exposure := map[string]any{"host": "shop.example.org", "namespace": TenantA, "status": "ACTIVE", "tls": "AUTO", "dnsManaged": false,
 		"dnsTarget": []string{"edge.example.net"}, "domain": "example.org", "domainVerified": true,
-		"target": map[string]any{"address": "198.51.100.10", "port": 8080, "scheme": "HTTP"}, "targetOutOfRange": false, "managedByPlatform": false,
+		"target": map[string]any{"address": "198.51.100.10", "port": 8443, "scheme": "HTTPS", "insecureSkipVerify": true}, "targetOutOfRange": false,
+		"proxied": false, "replacedRecords": []any{}, "managedByPlatform": false,
 		"basicAuthUser": nil, "createdAt": created, "createdBy": "ada", "updatedAt": created}
 	s.Fixed("exposuresAvailable", true)
 	s.Fixed("exposures", page(exposure))

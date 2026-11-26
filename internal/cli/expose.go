@@ -48,6 +48,16 @@ func (a *app) printExposure(cmd *cobra.Command, e *platform.Exposure) error {
 		}
 		fields = append(fields, [2]string{"Domain", *e.Domain}, [2]string{"Domain verified", verified})
 	}
+	if e.Target != nil && e.Target.Scheme == platform.ExposureHTTPS && e.Target.InsecureSkipVerify != nil {
+		checked := "checked"
+		if *e.Target.InsecureSkipVerify {
+			checked = "not checked"
+		}
+		fields = append(fields, [2]string{"Target certificate", checked})
+	}
+	if e.Proxied != nil {
+		fields = append(fields, [2]string{"DNS proxied", yesNo(*e.Proxied)})
+	}
 	if e.TargetOutOfRange {
 		fields = append(fields, [2]string{"Target out of range", "yes: publish the host again with its new address"})
 	}
@@ -88,7 +98,7 @@ func exposeTarget(to, scheme string) (platform.ExposureTarget, error) {
 
 func (a *app) exposeCommand() *cobra.Command {
 	var to, scheme, tls, user, namespace string
-	var noAuth bool
+	var noAuth, skipVerify bool
 	cmd := &cobra.Command{
 		Use:   "expose <hostname> --to <address>:<port>",
 		Short: "Publish a hostname and send its traffic to an address in the tenant's network (preview)",
@@ -97,11 +107,19 @@ certificate and, in a domain it manages, keeps its DNS record. Running the
 command again changes where the host goes.
 
   rso expose shop.example.com --to 198.51.100.10:8080
-  rso expose shop.example.com --to https://198.51.100.10:8443 --tls none
+  rso expose shop.example.com --to https://198.51.100.10:8443 --insecure-skip-verify
 
 The target is an address in the tenant's own private network, such as its
 load balancer. The hostname is under the tenant's platform domain or under a
 domain of your own that is verified (see "rso domain").
+
+  --insecure-skip-verify
+                       needed the first time a host is published to an https
+                       target: the platform then does not check the
+                       certificate the target presents. A target is an
+                       address, which a certificate rarely names. Give
+                       --insecure-skip-verify=false to have it checked. Left
+                       out for a host that exists, the host keeps its setting.
 
   --basic-auth-user    visitors sign in with this user name and a password;
                        the password is read from standard input:
@@ -115,6 +133,12 @@ domain of your own that is verified (see "rso domain").
 			target, err := exposeTarget(to, scheme)
 			if err != nil {
 				return err
+			}
+			if cmd.Flags().Changed("insecure-skip-verify") {
+				if target.Scheme != platform.ExposureHTTPS {
+					return usagef("--insecure-skip-verify is for an https target")
+				}
+				target.InsecureSkipVerify = &skipVerify
 			}
 			in := platform.ExposeHostInput{Host: strings.ToLower(args[0]), Target: target, Namespace: namespace}
 			switch strings.ToUpper(tls) {
@@ -152,6 +176,7 @@ domain of your own that is verified (see "rso domain").
 	}
 	cmd.Flags().StringVar(&to, "to", "", "where the traffic goes: <address>:<port>, optionally with http:// or https:// in front")
 	cmd.Flags().StringVar(&scheme, "scheme", "", "how the platform talks to the target: http (default) or https")
+	cmd.Flags().BoolVar(&skipVerify, "insecure-skip-verify", false, "https targets: do not check the certificate the target presents")
 	cmd.Flags().StringVar(&tls, "tls", "", "auto: the platform obtains a certificate (default); none: plain HTTP")
 	cmd.Flags().StringVar(&user, "basic-auth-user", "", "visitors sign in with this user name; the password comes from standard input")
 	cmd.Flags().BoolVar(&noAuth, "no-basic-auth", false, "remove the sign-in the host has")

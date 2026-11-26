@@ -1,12 +1,14 @@
 Host:                 shop.example.org
 Namespace:            11111111-1111-4111-8111-111111111111
 Status:               ACTIVE
-Target:               http://198.51.100.10:8080
+Target:               https://198.51.100.10:8443
 TLS:                  auto
 DNS managed:          no
 Point the host at:    edge.example.net
 Domain:               example.org
 Domain verified:      yes
+Target certificate:   not checked
+DNS proxied:          no
 Sign-in user:         -
 Managed by platform:  no
 Created:              2026-01-02 03:04

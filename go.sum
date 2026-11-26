@@ -9,8 +9,8 @@ github.com/spf13/cobra v1.10.2/go.mod h1:7C1pvHqHw5A4vrJfjNwvOdzYu0Gml16OCs2GRiT
 github.com/spf13/pflag v1.0.9/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/spf13/pflag v1.1.0 h1:6W6MbVUrnMb8PEhjkqwsVLY7ryuzRfFHF4mQd7L94ag=
 github.com/spf13/pflag v1.1.0/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
-github.com/theorigamicorporation/rsodev-go v0.3.0 h1:bfsp4Mx9/Vi8pL9phID3fuepWrO66pITPF0ChLusjic=
-github.com/theorigamicorporation/rsodev-go v0.3.0/go.mod h1:7nPaSHMYMwLfJYe6mP83+edUE2REQywlJNL43PiwVDk=
+github.com/theorigamicorporation/rsodev-go v0.3.1-0.20261126091141-bf3959fe17ff h1:m4+3i28n7GhktStbu7Z3eA3mBtawdaMSsIcl9HuuWpQ=
+github.com/theorigamicorporation/rsodev-go v0.3.1-0.20261126091141-bf3959fe17ff/go.mod h1:7nPaSHMYMwLfJYe6mP83+edUE2REQywlJNL43PiwVDk=
 github.com/vektah/gqlparser/v2 v2.5.64 h1:N32yM6hQ6Kd5RdjCCEJsUrbCebVoA9yLLMOIa88Mkk0=
 github.com/vektah/gqlparser/v2 v2.5.64/go.mod h1:nILRSUbsWDTuf8hSmAgFxuYh0SaMZdkvl6JSEbkJX8g=
 go.yaml.in/yaml/v3 v3.0.4/go.mod h1:DhzuOOF2ATzADvBadXxruRBLzYTpT36CKvDb3+aBEFg=
